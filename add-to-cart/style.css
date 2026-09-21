@@ -1,0 +1,39 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background: #f5f5f5;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+#status {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+#products {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+}
+
+.product-card {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+}
+
+#cart {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+}
+.cart-card {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+}
