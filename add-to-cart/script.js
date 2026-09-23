@@ -6,6 +6,7 @@ const clearCartButton = document.querySelector("#clearCart");
 const totalPrice = document.querySelector("#total");
 const searchInput = document.querySelector("#searchInput")
 const categoryFilter = document.querySelector("#categoryFilter");
+const productDetails = document.querySelector("#productDetails");
 
 let products = [];
 let cart = [];
@@ -80,6 +81,60 @@ function renderProducts(productsToRender) {
     productContainer.innerHTML = "";
 
     productsToRender.forEach((product) => {
+        const detailsButton = document.createElement("button");
+        detailsButton.textContent = "View Details";
+        detailsButton.dataset.id = product.id;
+
+        detailsButton.addEventListener("click", () => {
+            const productId = Number(detailsButton.dataset.id);
+
+            const selectedProduct = products.find((product) => {
+                return product.id === productId;
+            });
+        productDetails.innerHTML = `
+            <div class="product-details">
+                <img src="${selectedProduct.thumbnail}" alt="${selectedProduct.title}">
+
+                <h2>${selectedProduct.title}</h2>
+                <p>${selectedProduct.description}</p>
+                <p>Price: $${selectedProduct.price}</p>
+                <p>Category: ${selectedProduct.category}</p>
+                <p>Stock: ${selectedProduct.stock}</p>
+
+                <button id="addDetailToCart">Add to Cart</button>
+                <button id="closeDetails">Close</button>
+            </div>
+        `;
+            
+    const addDetailToCart = document.querySelector("#addDetailToCart");
+    const closeDetails = document.querySelector("#closeDetails");
+
+        closeDetails.addEventListener("click", () => {
+            productDetails.innerHTML = "";
+        });
+
+        addDetailToCart.addEventListener("click", () => {
+            const existingProduct = cart.find((item) => {
+                return item.id === selectedProduct.id;
+            })
+
+            if(existingProduct)
+            {
+                addDetailToCart.textContent = "Added";
+                addDetailToCart.disabled = true;
+            }
+            else
+            {
+                cart.push({
+                    ...selectedProduct,
+                    quantity: 1
+                });
+            }
+            renderCart();
+        });
+
+    });
+
         const productCard = document.createElement("div");
         productCard.classList.add("product-card");
 
@@ -115,6 +170,7 @@ function renderProducts(productsToRender) {
                 });
             }
 
+            productCard.appendChild(detailsButton);
             productCard.appendChild(addToCartButton);
             productContainer.appendChild(productCard);
     });
