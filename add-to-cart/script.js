@@ -7,6 +7,7 @@ const totalPrice = document.querySelector("#total");
 const searchInput = document.querySelector("#searchInput")
 const categoryFilter = document.querySelector("#categoryFilter");
 const productDetails = document.querySelector("#productDetails");
+const sortFilter = document.querySelector("#sortFilter");
 
 let products = [];
 let cart = [];
@@ -29,7 +30,7 @@ async function loadProducts() {
         renderCategories();
         renderProducts(products);
     }
-    catch { 
+    catch (error){ 
         status.textContent = "Failed to load products.!";
         console.log(error);
     }
@@ -39,6 +40,7 @@ function filterProducts()
 {
     const searchTerm = searchInput.value.toLowerCase(); 
     const selectedCategory = categoryFilter.value;
+    const selectedSort = sortFilter.value;
 
     const filteredProducts = products.filter((product) => {
         const matchesSearch = product.title
@@ -51,7 +53,39 @@ function filterProducts()
 
             return matchesSearch && matchesCategory;
     });
-    renderProducts(filteredProducts);
+
+    const sortedProducts = [...filteredProducts];
+
+    switch (selectedSort) {
+        case "price-low":
+                sortedProducts.sort((a, b) => {
+                    return a.price - b.price;
+                });
+            break;
+
+        case "price-high":
+                sortedProducts.sort((a, b) => {
+                    return b.price - a.price;
+                });
+            break;
+
+        case "name-az":
+                sortedProducts.sort((a, b) => {
+                    return a.title.localeCompare(b.title);
+                }); 
+            break;
+
+        case "name-za":
+                sortedProducts.sort((a, b) => {
+                    return b.title.localeCompare(a.title);
+                }); 
+            break;
+    
+        default:
+            break;
+    }
+
+    renderProducts(sortedProducts);
 }
 
 function renderCategories() {
@@ -74,6 +108,10 @@ searchInput.addEventListener(("input"), () => {
     });
 
 categoryFilter.addEventListener("change", () => {
+    filterProducts();
+});
+
+sortFilter.addEventListener("change", () => {
     filterProducts();
 });
 
@@ -125,12 +163,10 @@ function renderProducts(productsToRender) {
             }
             else
             {
-                cart.push({
-                    ...selectedProduct,
-                    quantity: 1
-                });
+                addToCart(product)
+                addDetailToCart.textContent = "Added";
+                addDetailToCart.disabled = true;
             }
-            renderCart();
         });
 
     });
@@ -161,11 +197,7 @@ function renderProducts(productsToRender) {
             {
                 addToCartButton.textContent = "Add to cart";
                 addToCartButton.addEventListener("click", () => {
-                    cart.push({
-                        ...product,
-                        quantity: 1
-                    });
-                    renderCart();
+                    addToCart(product);
                     renderProducts(productsToRender);
                 });
             }
@@ -175,6 +207,26 @@ function renderProducts(productsToRender) {
             productContainer.appendChild(productCard);
     });
         status.textContent = "Products loaded!";
+}
+
+function addToCart(product) {
+    const existingProduct = cart.find((item) => {
+        return item.id === product.id
+    });
+
+        if(existingProduct)
+        {
+            console.log("Product already in cart");
+        }
+        else
+        {
+            cart.push({
+                ...product,
+                quantity: 1
+            });
+        }
+
+    renderCart();
 }
 
 function renderCart() {
@@ -259,8 +311,6 @@ function renderCart() {
                 {
                     item.quantity--;
                 }
-
-                console.log(item.quantity);
             }
             if(action === "increase")
             {
@@ -272,7 +322,6 @@ function renderCart() {
                 {
                     alert("Stock reach the limit!");
                 }
-                console.log(item.quantity);
             }
             if(action === "remove")
             {
