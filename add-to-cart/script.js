@@ -8,6 +8,8 @@ const searchInput = document.querySelector("#searchInput")
 const categoryFilter = document.querySelector("#categoryFilter");
 const productDetails = document.querySelector("#productDetails");
 const sortFilter = document.querySelector("#sortFilter");
+const checkoutButton = document.querySelector("#checkoutButton");
+const checkoutContainer = document.querySelector("#checkout");
 
 let products = [];
 let cart = [];
@@ -227,6 +229,7 @@ function addToCart(product) {
         }
 
     renderCart();
+    saveCart();
 }
 
 function renderCart() {
@@ -286,12 +289,15 @@ function renderCart() {
 
         cartTitle.textContent = `Cart (${itemCount})`;
 
-        const totalAmount = cart.reduce((total, item) => {
-            return total + item.quantity * item.price;
-        },0);
-
-        totalPrice.textContent = (`Total $${totalAmount}`);
+        totalPrice.textContent = (`Total $${getCartTotal()}`);
 }
+
+function getCartTotal() {
+    return cart.reduce((total, item) => {
+        return total + item.quantity * item.price;
+    },0);
+}
+
         cartContainer.addEventListener("click", (event) => {
             if(!event.target.matches("button"))
             {
@@ -310,6 +316,7 @@ function renderCart() {
                 if(item.quantity > 1)
                 {
                     item.quantity--;
+                    saveCart();
                 }
             }
             if(action === "increase")
@@ -317,6 +324,7 @@ function renderCart() {
                 if(item.stock > item.quantity)
                 {
                     item.quantity++;
+                    saveCart();
                 }
                 else
                 {
@@ -330,14 +338,131 @@ function renderCart() {
                 });
             }
             renderCart();
+            saveCart();
             filterProducts();
         });
 
     clearCartButton.addEventListener("click", () => {
         cart = [];
         renderCart();
+        saveCart();
         filterProducts();
     });
 
+    checkoutButton.addEventListener("click", () => {
+        if(cart.length === 0)
+        {
+            alert("cart is empty!");
+            return;
+        }
+
+        checkoutContainer.innerHTML = `
+            <input type="text" id="full-name" placeholder="Full name">
+            <input type="email" id="email" placeholder="Email">
+            <input type="tel" id="number" placeholder="Number">
+            <input type="text" id="address" placeholder="Address">
+            <button id="placeOrderButton">Place Order</button>
+        `
+        const placeOrderButton = document.querySelector("#placeOrderButton");
+        const fullName = document.querySelector("#full-name");
+        const email = document.querySelector("#email");
+        const number = document.querySelector("#number");
+        const address = document.querySelector("#address");
+
+        placeOrderButton.addEventListener("click", () => {
+            const customerFullName = fullName.value;
+            const customerEmail = email.value;
+            const customerNumber = number.value;
+            const customerAddress = address.value;
+    
+            if(
+                customerFullName === "" ||
+                customerEmail === "" ||
+                customerNumber === "" ||
+                customerAddress === ""
+            )
+            {
+                alert("need to fill all out!");
+                return;
+            }
+
+            const order = {
+                customer: {
+                    name: customerFullName,
+                    email: customerEmail,
+                    number: customerNumber,
+                    address: customerAddress
+                },
+
+                items: cart,
+                total: getCartTotal()
+            }
+
+            let orderItemsHTML = "";
+
+            order.items.forEach((item) => {
+                orderItemsHTML += `
+                    <p>${item.title} ${item.quantity}</p>
+                `
+            });
+
+            checkoutContainer.innerHTML = `
+                <p>${order.customer.name}</p>
+                <p>${order.customer.email}</p>
+                <p>${order.customer.number}</p>
+                <p>${order.customer.address}</p>
+
+                <h2>Items</h2>
+                ${orderItemsHTML}
+
+                <p>Total: ${getCartTotal()}</p>
+
+                <button id="confirmOrderButton">Confirm Order</button>
+            `
+
+            const confirmOrderButton = document.querySelector("#confirmOrderButton");
+
+            confirmOrderButton.addEventListener("click", () => {
+                cart = [];
+                renderCart();
+                saveCart();
+
+                const orderNumber = `SC-${Math.floor(Math.random() * 100000)}`;
+
+                checkoutContainer.innerHTML = `
+                    <h2>Order Success! ✅</h2>
+                    <p>Your order has been placed successfully.</p>
+
+                    <p>Order number: ${orderNumber}</p>
+                    <p>${order.customer.name}</p>
+                    <p>${order.customer.email}</p>
+                    <p>${order.customer.number}</p>
+                    <p>${order.customer.address}</p>
+
+                    <h2>Items</h2>
+                    ${orderItemsHTML}
+
+                    <p>Total: ${order.total}</p>
+                `;
+            })
+        });
+    });
+
+function saveCart() {
+    const data = JSON.stringify(cart);
+    
+    localStorage.setItem("cart", data);
+}
+
+function loadCart() {
+    const savedCart = localStorage.getItem("cart");
+
+    if(savedCart)
+    {
+        cart = JSON.parse(savedCart);
+    }
+}
+
 loadProducts();
+loadCart();
 renderCart();
