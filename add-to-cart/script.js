@@ -4,12 +4,16 @@ const cartTitle = document.querySelector("#cart-title");
 const cartContainer = document.querySelector("#cart");
 const clearCartButton = document.querySelector("#clearCart");
 const totalPrice = document.querySelector("#total");
+const subTotal = document.querySelector("#subTotal");
+const shipping = document.querySelector("#shipping");
 const searchInput = document.querySelector("#searchInput")
 const categoryFilter = document.querySelector("#categoryFilter");
 const productDetails = document.querySelector("#productDetails");
 const sortFilter = document.querySelector("#sortFilter");
 const checkoutButton = document.querySelector("#checkoutButton");
 const checkoutContainer = document.querySelector("#checkout");
+const orderHistoryContainer = document.querySelector("#orderHistory");
+const clearHistoryButton = document.querySelector("#clearHistory");
 
 let products = [];
 let cart = [];
@@ -119,6 +123,12 @@ sortFilter.addEventListener("change", () => {
 
 function renderProducts(productsToRender) {
     productContainer.innerHTML = "";
+
+    if(productsToRender.length === 0)
+    {
+        productContainer.textContent = "No products found.";
+        return;
+    }
 
     productsToRender.forEach((product) => {
         const detailsButton = document.createElement("button");
@@ -255,10 +265,10 @@ function renderCart() {
             <h2>${item.title}</h2>
             <p>Price: $${item.price}</p>
             <p>Stock: ${item.stock}</p>
+            <p>Subtotal: $${getItemSubtotal(item).toFixed(2)}</p>
         `;
 
         const numberOfItem = document.createElement("p");
-
         numberOfItem.textContent = `${item.quantity}`;
 
         const decreaseQuantity = document.createElement("button");
@@ -276,9 +286,13 @@ function renderCart() {
         removeItem.dataset.action = "remove";
         removeItem.dataset.id = item.id;
 
-        cartCard.appendChild(decreaseQuantity);
-        cartCard.appendChild(numberOfItem);
-        cartCard.appendChild(increaseQuantity);
+        const quantityControls = document.createElement("div");
+        quantityControls.classList.add("quantity-controls");
+        quantityControls.appendChild(decreaseQuantity);
+        quantityControls.appendChild(numberOfItem);
+        quantityControls.appendChild(increaseQuantity);
+
+        cartCard.appendChild(quantityControls);
         cartCard.appendChild(removeItem);
         cartContainer.appendChild(cartCard);
     });
@@ -289,13 +303,9 @@ function renderCart() {
 
         cartTitle.textContent = `Cart (${itemCount})`;
 
-        totalPrice.textContent = (`Total $${getCartTotal()}`);
-}
-
-function getCartTotal() {
-    return cart.reduce((total, item) => {
-        return total + item.quantity * item.price;
-    },0);
+        subtotal.textContent = `Cart Subtotal: $${getCartSubtotal().toFixed(2)}`;
+        shipping.textContent = `Shipping: $50`;
+        totalPrice.textContent = (`Total $${getCartTotal().toFixed(2)}`);
 }
 
         cartContainer.addEventListener("click", (event) => {
@@ -370,14 +380,15 @@ function getCartTotal() {
         const address = document.querySelector("#address");
 
         placeOrderButton.addEventListener("click", () => {
-            const customerFullName = fullName.value;
-            const customerEmail = email.value;
-            const customerNumber = number.value;
-            const customerAddress = address.value;
+            const customerFullName = fullName.value.trim();
+            const customerEmail = email.value.trim();
+            const customerNumber = number.value.trim();
+            const customerAddress = address.value.trim();
     
             if(
                 customerFullName === "" ||
                 customerEmail === "" ||
+                !customerEmail.includes("@") ||
                 customerNumber === "" ||
                 customerAddress === ""
             )
@@ -391,11 +402,12 @@ function getCartTotal() {
                     name: customerFullName,
                     email: customerEmail,
                     number: customerNumber,
-                    address: customerAddress
+                    address: customerAddress,
                 },
 
                 items: cart,
-                total: getCartTotal()
+                total: getCartTotal(),
+                date: new Date()
             }
 
             let orderItemsHTML = "";
@@ -415,7 +427,7 @@ function getCartTotal() {
                 <h2>Items</h2>
                 ${orderItemsHTML}
 
-                <p>Total: ${getCartTotal()}</p>
+                <p>Total: $${getCartTotal().toFixed(2)}</p>
 
                 <button id="confirmOrderButton">Confirm Order</button>
             `
@@ -428,12 +440,16 @@ function getCartTotal() {
                 saveCart();
 
                 const orderNumber = `SC-${Math.floor(Math.random() * 100000)}`;
-
+                const date = order.date.toLocaleString("en-PH", {
+                    dateStyle: "long",
+                    timeStyle: "short"
+                });
                 checkoutContainer.innerHTML = `
                     <h2>Order Success! ✅</h2>
                     <p>Your order has been placed successfully.</p>
 
                     <p>Order number: ${orderNumber}</p>
+                    <p>Date: ${date}</p>
                     <p>${order.customer.name}</p>
                     <p>${order.customer.email}</p>
                     <p>${order.customer.number}</p>
@@ -444,9 +460,32 @@ function getCartTotal() {
 
                     <p>Total: ${order.total}</p>
                 `;
+
+                orderHistory.push({
+                    ...order,
+                    orderNumber: orderNumber
+                });
+                saveOrderHistory();
+                renderOrderHistory();
             })
         });
     });
+
+function getCartTotal() {
+    const shippingFee = 50;
+
+    return getCartSubtotal() + shippingFee;
+}
+ 
+function getItemSubtotal(item) {
+    return item.price * item.quantity;
+}
+
+function getCartSubtotal() {
+    return cart.reduce((total, item) => {
+        return total + getItemSubtotal(item);
+    }, 0)
+}
 
 function saveCart() {
     const data = JSON.stringify(cart);
@@ -463,6 +502,68 @@ function loadCart() {
     }
 }
 
+let orderHistory = [];
+
+function saveOrderHistory() {
+    const data = JSON.stringify(orderHistory);
+
+    localStorage.setItem("orderHistory", data);
+}
+
+function loadOrderHistory() {
+    const savedOrder = localStorage.getItem("orderHistory");
+
+    if(savedOrder)
+    {
+        orderHistory = JSON.parse(savedOrder);
+    }
+}
+
+function renderOrderHistory() {
+    orderHistoryContainer.innerHTML = "";
+
+    if(orderHistory.length === 0)
+    {
+        orderHistoryContainer.textContent = "No orders yet.";
+        return;
+    }
+    orderHistory.forEach((order) => {
+        const orderHistoryElement = document.createElement("div");
+        const date = new Date(order.date).toLocaleString("en-PH", {
+            dateStyle: "long",
+            timeStyle: "short"
+        });
+        let orderItemsHTML = "";
+
+        order.items.forEach((item) => {
+            orderItemsHTML += `
+                <p>${item.title} ${item.quantity}</p>
+            `
+        });
+        orderHistoryElement.innerHTML = `
+            <hr>
+            <p>OrderNumber: ${order.orderNumber}</p>
+            <p>Date: ${date}</p>
+            <p>${order.customer.name}</p>
+            <p>${order.customer.email}</p>
+            <p>${order.customer.number}</p>
+            <p>${order.customer.address}</p>
+            ${orderItemsHTML}
+
+            <p>Total: ${order.total}</p>    
+        `
+        orderHistoryContainer.appendChild(orderHistoryElement);
+    });
+}
+
+clearHistoryButton.addEventListener("click", () => {
+    orderHistory = [];
+    saveOrderHistory();
+    renderOrderHistory();
+})
+
 loadProducts();
 loadCart();
+loadOrderHistory();
+renderOrderHistory();
 renderCart();
