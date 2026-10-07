@@ -1,17 +1,19 @@
+const SHIPPING_FEE = 50;
+
 function addToCart(cart, product) {
     const existingProduct = cart.find((item) => {
-        return item.id === product.id
+        return item.id === product.id;
     });
 
-    if(existingProduct) {
+    if (existingProduct) {
         return false;
     }   
-    else
-    {
+    else {
         cart.push({
             ...product,
             quantity: 1
         });
+
         return true;
     }
 }
@@ -25,8 +27,7 @@ function findCartItem(cart, itemId) {
 function decreaseQuantity(cart, itemId) {
     const item = findCartItem(cart, itemId);
 
-    if(item.quantity > 1)
-    {
+    if (item.quantity > 1) {
         item.quantity--;
     }
 }
@@ -34,24 +35,28 @@ function decreaseQuantity(cart, itemId) {
 function increaseQuantity(cart, itemId) {
     const item = findCartItem(cart, itemId);
 
-    if(item.quantity < item.stock)
-    {
-        item.quantity++
+    if (item.quantity < item.stock) {
+        item.quantity++;
+        return true;
     }
+
+    return false;
 }
 
 function removeItem(cart, itemId) {
-    return cart = cart.filter((item) => {
-        return item.id !== itemId;
+    const index = cart.findIndex((item) => {
+        return item.id === itemId;
     });
+
+    if (index !== -1) {
+        cart.splice(index, 1);
+    }
 }
 
 function getCartTotal(cart) {
-    const shippingFee = 50;
-
-    return getCartSubtotal(cart) + shippingFee;
+    return getCartSubtotal(cart) + SHIPPING_FEE;
 }
- 
+
 function getItemSubtotal(item) {
     return item.price * item.quantity;
 }
@@ -59,10 +64,11 @@ function getItemSubtotal(item) {
 function getCartSubtotal(cart) {
     return cart.reduce((total, item) => {
         return total + getItemSubtotal(item);
-    }, 0)
+    }, 0);
 }
 
 export {
+    SHIPPING_FEE,
     addToCart,
     decreaseQuantity,
     increaseQuantity,

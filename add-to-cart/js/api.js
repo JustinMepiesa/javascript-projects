@@ -1,21 +1,13 @@
 async function fetchProducts() {
-    try {
-        const response = await fetch(
-            "https://dummyjson.com/products"
-        );
+    const response = await fetch("https://dummyjson.com/products");
 
-        if(!response.ok)
-        {
-            throw new Error(`HTTP error: ${response.status}`)
-        }
-
-        const data = await response.json(); 
-
-        return data.products;
+    if (!response.ok) {
+        throw new Error(`HTTP error: ${response.status}`);
     }
-    catch (error){ 
-        throw error;
-    }   
+
+    const data = await response.json();
+
+    return data.products;
 }
 
 export {

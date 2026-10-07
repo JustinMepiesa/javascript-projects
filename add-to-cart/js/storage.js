@@ -1,17 +1,7 @@
 function saveCart(cart) {
     const data = JSON.stringify(cart);
-    
+
     localStorage.setItem("cart", data);
-}
-
-function loadCart() {
-    const savedCart = localStorage.getItem("cart");
-
-    if(savedCart)
-    {
-        return JSON.parse(savedCart); 
-    }
-    return [];
 }
 
 function saveOrderHistory(orderHistory) {
@@ -20,13 +10,33 @@ function saveOrderHistory(orderHistory) {
     localStorage.setItem("orderHistory", data);
 }
 
-function loadOrderHistory() {
-    const savedOrder = localStorage.getItem("orderHistory");
+function loadCart() {
+    try {
+        const savedCart = localStorage.getItem("cart");
 
-    if(savedOrder)
-    {
-        return JSON.parse(savedOrder);
+        if (savedCart) {
+            return JSON.parse(savedCart);
+        }
     }
+    catch (error) {
+        console.log("Could not load cart:", error);
+    }
+
+    return [];
+}
+
+function loadOrderHistory() {
+    try {
+        const savedOrder = localStorage.getItem("orderHistory");
+
+        if (savedOrder) {
+            return JSON.parse(savedOrder);
+        }
+    }
+    catch (error) {
+        console.log("Could not load order history:", error);
+    }
+
     return [];
 }
 
