@@ -12,6 +12,8 @@ async function searchWeather() {
         return;
     }
     
+    localStorage.setItem("lastCity", city);
+
     try {
         weatherContainer.textContent = "Loading weather...";
 
@@ -86,4 +88,16 @@ function getWeatherIcon(code) {
     }
 }
 
+const lastCity = localStorage.getItem("lastCity");
+
+if(lastCity !== null) {
+    cityInput.value = lastCity;
+    searchWeather();
+}
+
 searchButton.addEventListener("click", searchWeather);
+cityInput.addEventListener("keydown", (event) => {
+    if(event.key === "Enter") {
+        searchWeather();
+    }
+});
