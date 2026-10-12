@@ -1,13 +1,39 @@
-import { searchCity, getWeather} from "./api.js";
+import { searchCity, getWeather, getCityFromCoordinates} from "./api.js";
 
 const cityInput = document.querySelector("#cityInput");
 const searchButton = document.querySelector("#searchButton");
+const locationButton = document.querySelector("#locationButton");
 const unitbutton = document.querySelector("#unitButton");
 const weatherContainer = document.querySelector("#weatherContainer");
 
 let isCelsius = true;
 let currentWeatherData = null;
 let currentCity = null;
+
+locationButton.addEventListener("click", () => {
+    navigator.geolocation.getCurrentPosition(async (position) => {
+        try {
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
+
+            currentCity = await getCityFromCoordinates(latitude, longitude);
+
+            currentWeatherData = await getWeather(latitude, longitude);
+
+            displayWeather();
+        }
+        catch(error) {
+            weatherContainer.textContent = error.message || "Unable to load your local weather";
+        }
+    });
+    (error) => {
+        if(error.code === 1) {
+            weatherContainer.textContent = "Location permission denied. Please allow location access.";
+        } else {
+            weatherContainer.textContent = "Unable to retrieve your location. Please try again.";
+        }
+    }
+});
 
 unitbutton.addEventListener("click", () => {
     if(currentWeatherData === null) {
@@ -44,10 +70,12 @@ async function searchWeather() {
         displayWeather();
     }
     catch (error) {
-        if(error.message === "City not found.") {
+        if(error instanceof TypeError) {
+            weatherContainer.textContent = "Unable to connect. Please check your internet connection and try again.";
+        }else if(error.message === "City not found.") {
             weatherContainer.textContent = "City not found. Please check the spelling.";
         } else {
-            weatherContainer.textContent = "Something went wrong. Please try again."
+            weatherContainer.textContent = "Something went wrong. Please try again.";
         }
     }
 }

@@ -30,4 +30,31 @@ async function getWeather(latitude, longitude) {
     return data.current;
 }
 
-export { searchCity, getWeather};
+async function getCityFromCoordinates(latitude, longitude) {
+    const response = await fetch(
+         `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&zoom=10&addressdetails=1`
+    );
+
+    if(!response.ok) {
+        throw new Error("Unable to find your location.");
+    }
+
+    const data = await response.json();
+    const address = data.address;
+
+    const city =
+    address.city ||
+    address.town ||
+    address.village ||
+    address.municipality;
+
+    if(!city || !address.country) {
+        throw new Error("Unable to find your City.");
+    }
+
+    return {
+        name: city,
+        country: address.country
+    }
+}
+export { searchCity, getWeather, getCityFromCoordinates};
