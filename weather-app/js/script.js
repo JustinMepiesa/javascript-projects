@@ -96,15 +96,50 @@ function displayWeather() {
 function getWeatherDescription(code) {
     if(code === 0) {
         return "Clear Sky"; 
-    } 
-    else if(code === 1) {
+    } else if(code === 1) {
         return "Mainly Clear";
-    }
-    else if(code === 2) {
+    } else if(code === 2) {
         return "Partly Cloudy";
-    }
-    else if(code === 3) {
+    } else if(code === 3) {
         return "Overcast";
+    } else if(code === 45 || code === 48) {
+        return "Fog";
+    } else if(code === 61) {
+        return "Slight rain";
+    } else if(code === 63) {
+        return "Moderate rain";
+    } else if(code === 65) {
+        return "Heavy rain";
+    } else if(code === 95 || code === 96 || code === 99) {
+        return "Thunderstorm";
+    } else if(code === 51) {
+        return "Light drizzle";
+    } else if(code === 53) {
+        return "Moderate drizzle";
+    } else if(code === 55) {
+        return "Dense drizzle";
+    } else if(code === 56) {
+        return "Light freezing drizzle";
+    } else if(code === 57) {
+        return "Dense freezing drizzle";
+    } else if(code === 71) {
+        return "Slight snow";
+    } else if(code === 73) {
+        return "Moderate snowfall";
+    } else if(code === 75) {
+        return "Heavy snowfall";
+    } else if(code === 77) {
+        return "Snow grains";
+    } else if(code === 85) {
+        return "Slight snow showers";
+    } else if(code === 86) {
+        return "Heavy snow showers";
+    } else if(code === 80) {
+        return "Slight rain showers";
+    } else if(code === 81) {
+        return "Moderate rain showers";
+    } else if(code === 82) {
+        return "Violent rain showers";
     } else {
         return "Unknown weather";
     }
@@ -119,6 +154,20 @@ function getWeatherIcon(code) {
         return "⛅";
     } else if (code === 3) {
         return "☁️";
+    } else if(code === 45 || code === 48) {
+        return "🌫️";
+    } else if(code === 61) {
+        return "🌦️";
+    } else if(code === 63 || code === 65) {
+        return "🌧️";
+    } else if(code === 95 || code === 96 || code === 99) {
+        return "⛈️"
+    } else if(code === 51 || code === 53 || code === 55 ||code === 56 || code === 57) {
+        return "🌦️"
+    } else if(code === 71 || code === 73 || code === 75 ||code === 77 || code === 85 || code === 86) {
+        return "❄️"
+    } else if(code === 80 || code === 81 || code === 82) {
+        return "🌧️"
     } else {
         return "🌡️";
     }
