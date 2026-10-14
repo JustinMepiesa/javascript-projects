@@ -44,7 +44,7 @@ h1 {
     font-size: 16px;
 }
 
-#searchButton {
+/* #searchButton {
     padding: 12px 16px;
     border: none;
     border-radius: 8px;
@@ -52,11 +52,11 @@ h1 {
     color: white;
     cursor: pointer;
     font-size: 16px;
-}
+} */
 
-#searchButton:hover {
+/* #searchButton:hover {
     background: #1d4ed8;
-}
+} */
 
 #weatherContainer {
     color: #334155;

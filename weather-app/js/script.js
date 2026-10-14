@@ -3,39 +3,45 @@ import { searchCity, getWeather, getCityFromCoordinates} from "./api.js";
 const cityInput = document.querySelector("#cityInput");
 const searchButton = document.querySelector("#searchButton");
 const locationButton = document.querySelector("#locationButton");
-const unitbutton = document.querySelector("#unitButton");
+const unitButton = document.querySelector("#unitButton");
 const weatherContainer = document.querySelector("#weatherContainer");
 
 let isCelsius = true;
 let currentWeatherData = null;
-let currentCity = null;
+let currentCityData = null;
 
 locationButton.addEventListener("click", () => {
-    navigator.geolocation.getCurrentPosition(async (position) => {
-        try {
-            const latitude = position.coords.latitude;
-            const longitude = position.coords.longitude;
+    locationButton.disabled = true;
+    weatherContainer.textContent = "Getting your location...";
+    
+    navigator.geolocation.getCurrentPosition(
+        async (position) => {
+            try {
+                weatherContainer.textContent = "Loading weather...";
+                const { latitude, longitude } = position.coords;
 
-            currentCity = await getCityFromCoordinates(latitude, longitude);
+                currentCityData = await getCityFromCoordinates(latitude, longitude);
+                currentWeatherData = await getWeather(latitude, longitude);
 
-            currentWeatherData = await getWeather(latitude, longitude);
-
-            displayWeather();
-        }
-        catch(error) {
-            weatherContainer.textContent = error.message || "Unable to load your local weather";
-        }
-    });
-    (error) => {
-        if(error.code === 1) {
-            weatherContainer.textContent = "Location permission denied. Please allow location access.";
-        } else {
-            weatherContainer.textContent = "Unable to retrieve your location. Please try again.";
-        }
-    }
+                displayWeather();
+            } catch (error) {
+                weatherContainer.textContent = error.message || "Unable to load your local weather";
+            } finally {
+                locationButton.disabled = false;
+            }
+        },
+        (error) => {
+            if (error.code === 1) {
+                weatherContainer.textContent = "Location permission denied. Please allow location access.";
+            } else {
+                weatherContainer.textContent = "Unable to retrieve your location. Please try again.";
+            }
+            locationButton.disabled = false;
+        },
+    );
 });
 
-unitbutton.addEventListener("click", () => {
+unitButton.addEventListener("click", () => {
     if(currentWeatherData === null) {
         return;
     }
@@ -58,15 +64,16 @@ async function searchWeather() {
     
     localStorage.setItem("lastCity", city);
 
+    searchButton.disabled = true;
     try {
         weatherContainer.textContent = "Loading weather...";
 
         const cityData = await searchCity(city);    
-        currentCity = cityData;
+        currentCityData = cityData;
 
         const weatherData = await getWeather(cityData.latitude, cityData.longitude);
         currentWeatherData = weatherData;
-        
+
         displayWeather();
     }
     catch (error) {
@@ -77,6 +84,8 @@ async function searchWeather() {
         } else {
             weatherContainer.textContent = "Something went wrong. Please try again.";
         }
+    } finally {
+        searchButton.disabled = false;
     }
 }
 
@@ -97,13 +106,13 @@ function displayWeather() {
 
     weatherContainer.innerHTML = `
         <div class="weather-card">
-            <h2>${currentCity.name}, ${currentCity.country}</h2>
+            <h2>${currentCityData.name}, ${currentCityData.country}</h2>
 
             <div class="main-weather">
                 <div class="weather-icon">${weatherIcon}</div>
-                <h3>${displayTemperature}${temperatureUnit}</h3>
+                <h3>${displayTemperature.toFixed(1)}${temperatureUnit}</h3>
                 <p class="weather-description">${weatherDescription}</p>
-                <p>Feels like ${displayApparentTemp}${temperatureUnit}</p>
+                <p>Feels like ${displayApparentTemp.toFixed(1)}${temperatureUnit}</p>
             </div>
 
             <div class="weather-details">
