@@ -1,105 +1,73 @@
-import { searchCity, getWeather, getCityFromCoordinates} from "./api.js";
+import { searchCity, getWeather, getCityFromCoordinates } from "./api.js";
 
+const searchForm = document.querySelector("#searchForm");
 const cityInput = document.querySelector("#cityInput");
 const searchButton = document.querySelector("#searchButton");
 const locationButton = document.querySelector("#locationButton");
 const unitButton = document.querySelector("#unitButton");
 const weatherContainer = document.querySelector("#weatherContainer");
 
+const WEATHER_CODES = {
+    0:  { text: "Clear Sky",              icon: "☀️" },
+    1:  { text: "Mainly Clear",           icon: "🌤️" },
+    2:  { text: "Partly Cloudy",          icon: "⛅" },
+    3:  { text: "Overcast",               icon: "☁️" },
+    45: { text: "Fog",                    icon: "🌫️" },
+    48: { text: "Fog",                    icon: "🌫️" },
+    51: { text: "Light drizzle",          icon: "🌦️" },
+    53: { text: "Moderate drizzle",       icon: "🌦️" },
+    55: { text: "Dense drizzle",          icon: "🌦️" },
+    56: { text: "Light freezing drizzle", icon: "🌦️" },
+    57: { text: "Dense freezing drizzle", icon: "🌦️" },
+    61: { text: "Slight rain",            icon: "🌦️" },
+    63: { text: "Moderate rain",          icon: "🌧️" },
+    65: { text: "Heavy rain",             icon: "🌧️" },
+    66: { text: "Light freezing rain",    icon: "🌧️" },
+    67: { text: "Heavy freezing rain",    icon: "🌧️" },
+    71: { text: "Slight snow",            icon: "❄️" },
+    73: { text: "Moderate snowfall",      icon: "❄️" },
+    75: { text: "Heavy snowfall",         icon: "❄️" },
+    77: { text: "Snow grains",            icon: "❄️" },
+    80: { text: "Slight rain showers",    icon: "🌧️" },
+    81: { text: "Moderate rain showers",  icon: "🌧️" },
+    82: { text: "Violent rain showers",   icon: "🌧️" },
+    85: { text: "Slight snow showers",    icon: "❄️" },
+    86: { text: "Heavy snow showers",     icon: "❄️" },
+    95: { text: "Thunderstorm",           icon: "⛈️" },
+    96: { text: "Thunderstorm",           icon: "⛈️" },
+    99: { text: "Thunderstorm",           icon: "⛈️" },
+};
+
 let isCelsius = true;
 let currentWeatherData = null;
 let currentCityData = null;
+let isLoading = false;
 
-locationButton.addEventListener("click", () => {
-    locationButton.disabled = true;
-    weatherContainer.textContent = "Getting your location...";
-    
-    navigator.geolocation.getCurrentPosition(
-        async (position) => {
-            try {
-                weatherContainer.textContent = "Loading weather...";
-                const { latitude, longitude } = position.coords;
+function setLoading(state) {
+    isLoading = state;
 
-                currentCityData = await getCityFromCoordinates(latitude, longitude);
-                currentWeatherData = await getWeather(latitude, longitude);
-
-                displayWeather();
-            } catch (error) {
-                weatherContainer.textContent = error.message || "Unable to load your local weather";
-            } finally {
-                locationButton.disabled = false;
-            }
-        },
-        (error) => {
-            if (error.code === 1) {
-                weatherContainer.textContent = "Location permission denied. Please allow location access.";
-            } else {
-                weatherContainer.textContent = "Unable to retrieve your location. Please try again.";
-            }
-            locationButton.disabled = false;
-        },
-    );
-});
-
-unitButton.addEventListener("click", () => {
-    if(currentWeatherData === null) {
-        return;
-    }
-
-    isCelsius = !isCelsius;
-    displayWeather();
-});
+    searchButton.disabled = state;
+    locationButton.disabled = state;
+}
 
 function convertTemperature(celsius) {
     return (celsius * 9 / 5) + 32;
 }
 
-async function searchWeather() {
-    const city = cityInput.value.trim();
-
-    if(city === "") {
-        weatherContainer.textContent = "Please enter City name.";
-        return;
-    }
-    
-    localStorage.setItem("lastCity", city);
-
-    searchButton.disabled = true;
-    try {
-        weatherContainer.textContent = "Loading weather...";
-
-        const cityData = await searchCity(city);    
-        currentCityData = cityData;
-
-        const weatherData = await getWeather(cityData.latitude, cityData.longitude);
-        currentWeatherData = weatherData;
-
-        displayWeather();
-    }
-    catch (error) {
-        if(error instanceof TypeError) {
-            weatherContainer.textContent = "Unable to connect. Please check your internet connection and try again.";
-        }else if(error.message === "City not found.") {
-            weatherContainer.textContent = "City not found. Please check the spelling.";
-        } else {
-            weatherContainer.textContent = "Something went wrong. Please try again.";
-        }
-    } finally {
-        searchButton.disabled = false;
-    }
+function getWeatherInfo(code) {
+    return WEATHER_CODES[code] ?? { text: "Unknown weather", icon: "🌡️" };
 }
 
 function displayWeather() {
-    const weatherDescription = getWeatherDescription(currentWeatherData.weather_code);
-    const weatherIcon = getWeatherIcon(currentWeatherData.weather_code);
+    const { text: weatherDescription, icon: weatherIcon } = getWeatherInfo(currentWeatherData.weather_code);
 
     const displayTemperature = isCelsius
-    ? currentWeatherData.temperature_2m
-    : convertTemperature(currentWeatherData.temperature_2m);
+        ? currentWeatherData.temperature_2m
+        : convertTemperature(currentWeatherData.temperature_2m);
 
     const displayApparentTemp = isCelsius
-    ? currentWeatherData.apparent_temperature
-    : convertTemperature(currentWeatherData.apparent_temperature);
+        ? currentWeatherData.apparent_temperature
+        : convertTemperature(currentWeatherData.apparent_temperature);
 
     const temperatureUnit = isCelsius ? "°C" : "°F";
     unitButton.textContent = isCelsius ? "Switch to °F" : "Switch to °C";
@@ -130,96 +98,112 @@ function displayWeather() {
     `;
 }
 
-function getWeatherDescription(code) {
-    if(code === 0) {
-        return "Clear Sky"; 
-    } else if(code === 1) {
-        return "Mainly Clear";
-    } else if(code === 2) {
-        return "Partly Cloudy";
-    } else if(code === 3) {
-        return "Overcast";
-    } else if(code === 45 || code === 48) {
-        return "Fog";
-    } else if(code === 61) {
-        return "Slight rain";
-    } else if(code === 63) {
-        return "Moderate rain";
-    } else if(code === 65) {
-        return "Heavy rain";
-    } else if(code === 95 || code === 96 || code === 99) {
-        return "Thunderstorm";
-    } else if(code === 51) {
-        return "Light drizzle";
-    } else if(code === 53) {
-        return "Moderate drizzle";
-    } else if(code === 55) {
-        return "Dense drizzle";
-    } else if(code === 56) {
-        return "Light freezing drizzle";
-    } else if(code === 57) {
-        return "Dense freezing drizzle";
-    } else if(code === 71) {
-        return "Slight snow";
-    } else if(code === 73) {
-        return "Moderate snowfall";
-    } else if(code === 75) {
-        return "Heavy snowfall";
-    } else if(code === 77) {
-        return "Snow grains";
-    } else if(code === 85) {
-        return "Slight snow showers";
-    } else if(code === 86) {
-        return "Heavy snow showers";
-    } else if(code === 80) {
-        return "Slight rain showers";
-    } else if(code === 81) {
-        return "Moderate rain showers";
-    } else if(code === 82) {
-        return "Violent rain showers";
-    } else {
-        return "Unknown weather";
+async function searchWeather() {
+    if (isLoading) {
+        return;
+    }
+
+    currentCityData = null;
+    currentWeatherData = null;
+
+    const city = cityInput.value.trim();
+
+    if (city === "") {
+        weatherContainer.textContent = "Please enter City name.";
+        return;
+    }
+
+    setLoading(true);
+    try {
+        weatherContainer.textContent = "Loading weather...";
+
+        const cityData = await searchCity(city);
+        currentCityData = cityData;
+
+        const weatherData = await getWeather(cityData.latitude, cityData.longitude);
+        currentWeatherData = weatherData;
+
+        try {
+            localStorage.setItem("lastCity", city);
+        } catch (error) {
+            console.log("Couldn't save city:", error);
+        }
+
+        displayWeather();
+    } catch (error) {
+        if (error instanceof TypeError) {
+            weatherContainer.textContent = "Unable to connect. Please check your internet connection and try again.";
+        } else if (error.message === "City not found.") {
+            weatherContainer.textContent = "City not found. Please check the spelling.";
+        } else {
+            weatherContainer.textContent = "Something went wrong. Please try again.";
+        }
+    } finally {
+        setLoading(false);
     }
 }
 
-function getWeatherIcon(code) {
-    if (code === 0) {
-        return "☀️";
-    } else if (code === 1) {
-        return "🌤️";
-    } else if (code === 2) {
-        return "⛅";
-    } else if (code === 3) {
-        return "☁️";
-    } else if(code === 45 || code === 48) {
-        return "🌫️";
-    } else if(code === 61) {
-        return "🌦️";
-    } else if(code === 63 || code === 65) {
-        return "🌧️";
-    } else if(code === 95 || code === 96 || code === 99) {
-        return "⛈️"
-    } else if(code === 51 || code === 53 || code === 55 ||code === 56 || code === 57) {
-        return "🌦️"
-    } else if(code === 71 || code === 73 || code === 75 ||code === 77 || code === 85 || code === 86) {
-        return "❄️"
-    } else if(code === 80 || code === 81 || code === 82) {
-        return "🌧️"
-    } else {
-        return "🌡️";
+function useMyLocation() {
+    if (isLoading) {
+        return;
     }
+
+    setLoading(true);
+    currentCityData = null;
+    currentWeatherData = null;
+    weatherContainer.textContent = "Getting your location...";
+
+    navigator.geolocation.getCurrentPosition(
+        async (position) => {
+            try {
+                weatherContainer.textContent = "Loading weather...";
+                const { latitude, longitude } = position.coords;
+
+                currentCityData = await getCityFromCoordinates(latitude, longitude);
+                currentWeatherData = await getWeather(latitude, longitude);
+
+                displayWeather();
+            } catch (error) {
+                weatherContainer.textContent = error.message || "Unable to load your local weather";
+            } finally {
+                setLoading(false);
+            }
+        },
+        (error) => {
+            if (error.code === 1) {
+                weatherContainer.textContent = "Location permission denied. Please allow location access.";
+            } else {
+                weatherContainer.textContent = "Unable to retrieve your location. Please try again.";
+            }
+            setLoading(false);
+        },
+    );
 }
+
+function toggleUnit() {
+    if (isLoading) {
+        return;
+    }
+
+    if (currentWeatherData === null) {
+        return;
+    }
+
+    isCelsius = !isCelsius;
+    displayWeather();
+}
+
+searchForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    searchWeather();
+});
+
+locationButton.addEventListener("click", useMyLocation);
+unitButton.addEventListener("click", toggleUnit);
 
 const lastCity = localStorage.getItem("lastCity");
 
-if(lastCity !== null) {
+if (lastCity !== null) {
     cityInput.value = lastCity;
     searchWeather();
 }
-
-searchButton.addEventListener("click", searchWeather);
-cityInput.addEventListener("keydown", (event) => {
-    if(event.key === "Enter") {
-        searchWeather();
-    }
-});

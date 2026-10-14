@@ -1,3 +1,19 @@
+/* ---------- Tokens ---------- */
+:root {
+    --bg-top: #eef3f6;
+    --bg-bottom: #dfe9ef;
+    --surface: #fbfcfd;
+    --panel: #f1f5f8;
+    --text: #26343f;
+    --muted: #6b7c8a;
+    --line: #dce5ea;
+    --accent: #4f7a94;
+    --accent-hover: #43687f;
+    --accent-soft: #e6eef3;
+    --radius-lg: 20px;
+    --radius-md: 12px;
+    --font: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+}
 
 * {
     box-sizing: border-box;
@@ -6,138 +22,236 @@
 }
 
 body {
-    font-family: Arial, sans-serif;
-    background: #eaf4ff;
+    font-family: var(--font);
+    color: var(--text);
+    background: linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
+    background-attachment: fixed;
     min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
+    padding: 24px 0;
 }
 
+/* ---------- App shell ---------- */
 .weather-app {
-    background: white;
-    width: 90%;
-    max-width: 450px;
-    padding: 30px;
-    border-radius: 16px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    background: var(--surface);
+    width: 92%;
+    max-width: 440px;
+    padding: 32px 28px;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 2px 20px rgba(38, 52, 63, 0.06);
     text-align: center;
 }
 
 h1 {
-    margin-bottom: 25px;
-    color: #1e3a5f;
+    margin-bottom: 24px;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: var(--text);
 }
 
+/* ---------- Search area ---------- */
 .search-container {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
     gap: 10px;
-    margin-bottom: 25px;
+    margin-bottom: 24px;
 }
 
 #cityInput {
-    flex: 1;
+    grid-column: span 3;
     min-width: 0;
-    padding: 12px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
     font-size: 16px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* #searchButton {
-    padding: 12px 16px;
-    border: none;
-    border-radius: 8px;
-    background: #2563eb;
-    color: white;
+#cityInput::placeholder {
+    color: #9aa8b3;
+}
+
+#cityInput:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(79, 122, 148, 0.18);
+}
+
+.search-container button {
+    padding: 12px 10px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    color: var(--accent);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
     cursor: pointer;
-    font-size: 16px;
-} */
+    transition: background 0.2s ease, border-color 0.2s ease,
+                color 0.2s ease, transform 0.15s ease;
+}
 
-/* #searchButton:hover {
-    background: #1d4ed8;
-} */
+.search-container button:hover:not(:disabled) {
+    background: var(--accent-soft);
+    border-color: #c9d8e1;
+}
 
+.search-container button:active:not(:disabled) {
+    transform: scale(0.97);
+}
+
+.search-container button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.search-container button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+/* Primary action */
+#searchButton {
+    grid-column: span 1;
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #ffffff;
+}
+
+#searchButton:hover:not(:disabled) {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+}
+
+/* Secondary actions share the second row */
+#locationButton,
+#unitButton {
+    grid-column: span 2;
+}
+
+/* ---------- Result area ---------- */
 #weatherContainer {
-    color: #334155;
+    color: var(--muted);
     line-height: 1.6;
+    min-height: 60px;
 }
 
-/* Main weather card */
+/* ---------- Weather card ---------- */
 .weather-card {
-    margin-top: 24px;
-    padding: 24px;
-    border-radius: 20px;
-    background: linear-gradient(145deg, #eaf4ff, #ffffff);
-    box-shadow: 0 8px 24px rgba(30, 64, 100, 0.12);
-    color: #17365d;
+    padding: 28px 20px 20px;
+    border-radius: var(--radius-lg);
+    background: var(--panel);
+    color: var(--text);
+    animation: fadeUp 0.5s ease both;
 }
 
-/* City name */
 .weather-card h2 {
-    margin: 0;
-    font-size: 24px;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
 }
 
-/* Main weather information */
 .main-weather {
-    text-align: center;
-    padding: 24px 0;
+    padding: 20px 0 24px;
 }
 
 .weather-icon {
-    font-size: 64px;
-    margin-bottom: 8px;
+    font-size: 72px;
+    line-height: 1;
+    margin-bottom: 6px;
+    display: inline-block;
+    animation: float 6s ease-in-out infinite;
 }
 
 .main-weather h3 {
-    margin: 8px 0;
-    font-size: 48px;
+    margin: 4px 0;
+    font-size: 56px;
+    font-weight: 300;
+    letter-spacing: -0.02em;
+    color: var(--text);
 }
 
 .weather-description {
+    margin: 4px 0;
     font-size: 18px;
-    font-weight: 600;
-    margin: 8px 0;
+    font-weight: 500;
+    color: var(--text);
 }
 
 .main-weather p {
-    color: #526b85;
+    color: var(--muted);
 }
 
-/* Humidity and wind details */
+.main-weather p.weather-description {
+    color: var(--text);
+}
+
+/* ---------- Details ---------- */
 .weather-details {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
+    gap: 10px;
 }
 
 .weather-detail {
-    padding: 16px;
-    border-radius: 14px;
-    background: #ffffff;
-    box-shadow: 0 3px 10px rgba(30, 64, 100, 0.06);
+    padding: 14px;
+    border-radius: var(--radius-md);
+    background: var(--surface);
 }
 
 .weather-detail p {
-    margin: 0 0 8px;
-    color: #526b85;
-    font-size: 14px;
+    margin: 0 0 4px;
+    font-size: 13px;
+    color: var(--muted);
 }
 
 .weather-detail h3 {
     margin: 0;
     font-size: 20px;
+    font-weight: 600;
+    color: var(--text);
 }
 
-/* Smaller screens */
+/* ---------- Animations ---------- */
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-5px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
+/* ---------- Small screens ---------- */
 @media (max-width: 400px) {
-    .weather-card {
-        padding: 16px;
+    .weather-app {
+        padding: 24px 16px;
     }
 
     .main-weather h3 {
-        font-size: 40px;
+        font-size: 46px;
     }
 
     .weather-details {

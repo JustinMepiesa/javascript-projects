@@ -12,18 +12,19 @@
     <main class="weather-app">
         <h1>Weather App</h1>
 
-        <div class="search-container">
+        <form class="search-container" id="searchForm">
             <input
                 type="text"
                 id="cityInput"
                 placeholder="Enter city name"
+                aria-label="City name"
             >
-            <button type="button" id="searchButton">Search</button>
+            <button type="submit" id="searchButton">Search</button>
             <button type="button" id="locationButton">Use My Location</button>
-            <button type="button" id="unitButton">°C / °F</button>
-        </div>
+            <button type="button" id="unitButton">Switch to °F</button>
+        </form>
 
-        <div id="weatherContainer">
+        <div id="weatherContainer" aria-live="polite">
             <p>Search for a city to see its weather.</p>
         </div>
     </main>
