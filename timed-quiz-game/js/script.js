@@ -1,4 +1,9 @@
 import { generateQuestion } from "./questions.js";
+import { startTimer, stopTimer } from "./timer.js";
+////////////////////////////
+
+const timerElement = document.querySelector("#timer");
+//////////////////////////////
 
 const settings  = document.querySelector(".settings")
 const operatorButton = document.querySelectorAll(".operator-options button");
@@ -30,13 +35,13 @@ difficulty.addEventListener("change", () => {
 
 startButton.addEventListener("click", () => {
 
-    score = 0;
-    scoreElement.textContent = score;
-
     if(selectedOperator === null) {
         alert("Please select an operator.");
         return;
     }
+
+    score = 0;
+    scoreElement.textContent = score;
 
     currentQuestion = generateQuestion(selectedOperator, selectedDifficulty);
 
@@ -47,6 +52,27 @@ startButton.addEventListener("click", () => {
     
     settings.hidden = true;
     gameContainer.hidden = false;
+
+    const timeLimit = {
+    easy: 15,
+    medium: 10,
+    hard: 5
+};
+
+startTimer(
+    timeLimit[selectedDifficulty],
+    (remainingTime) => {
+        timerElement.textContent = remainingTime;
+    },
+    () => {
+        feedbackElement.textContent = "Time's up!";
+        submitButton.disabled = true;
+        answerInput.disabled = true;
+    }
+);
+
+submitButton.disabled = false;
+answerInput.disabled = false;
 });
 
 submitButton.addEventListener("click", () => {
@@ -56,6 +82,8 @@ submitButton.addEventListener("click", () => {
         feedbackElement.textContent = "Please enter answer.";
          return;
      }
+
+     stopTimer();
 
      const playerAnswer = Number(answerInput.value);
      
