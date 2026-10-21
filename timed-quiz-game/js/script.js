@@ -14,11 +14,13 @@ const feedbackElement = document.querySelector("#feedback");
 const timerElement = document.querySelector("#timer");
 const playAgainButton = document.querySelector("#playAgainButton");
 const nextQuestionButton = document.querySelector("#nextQuestionButton");
+const numberOfQuestions = document.querySelector("#numberOfQuestions");
 
 let selectedOperator = null;
 let selectedDifficulty = "easy";
 let currentQuestion = null;
 let score = 0;
+let currentQuestionNumber = 1;
 
 function updateTimerDisplay(time) {
     timerElement.textContent = time;
@@ -101,6 +103,8 @@ submitButton.addEventListener("click", () => {
 });
 
 playAgainButton.addEventListener("click", () => {
+    currentQuestionNumber = 1;
+    numberOfQuestions.textContent = currentQuestionNumber;
     settings.hidden = false;
     gameContainer.hidden = true;
 });
@@ -109,6 +113,8 @@ nextQuestionButton.addEventListener("click", () => {
     currentQuestion = generateQuestion(selectedOperator, selectedDifficulty);
     questionElement.textContent = `${currentQuestion.number1} ${selectedOperator} ${currentQuestion.number2} = ?`;
 
+    currentQuestionNumber++;
+    numberOfQuestions.textContent = currentQuestionNumber;
     answerInput.value = "";
     feedbackElement.textContent = "";
 
