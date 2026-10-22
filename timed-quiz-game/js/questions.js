@@ -29,7 +29,7 @@ function generateQuestion(operator, difficulty) {
 
         case "-":
             if(number2 > number1) {
-                answer = number2 - number1;
+                [number1, number2] = [number2, number1];
             } else {
                 answer = number1 - number2;
             }

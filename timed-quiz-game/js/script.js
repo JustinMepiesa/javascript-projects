@@ -15,31 +15,48 @@ const timerElement = document.querySelector("#timer");
 const playAgainButton = document.querySelector("#playAgainButton");
 const nextQuestionButton = document.querySelector("#nextQuestionButton");
 const numberOfQuestions = document.querySelector("#numberOfQuestions");
+const resultContainer = document.querySelector("#resultContainer");
+const finalScoreElement = document.querySelector("#finalScore");
 
 let selectedOperator = null;
 let selectedDifficulty = "easy";
 let currentQuestion = null;
 let score = 0;
 let currentQuestionNumber = 1;
+const totalQuestions = 10;
+
+const symbols = { "+": "+", "-": "−", "*": "×", "/": "÷" };
 
 function updateTimerDisplay(time) {
     timerElement.textContent = time;
+    timerElement.classList.toggle("low", time <= 3);
 }
 
 function handleTimeUp() {
-    feedbackElement.textContent = `Times up! The correct answer is: ${currentQuestion.answer}`;
+    feedbackElement.textContent = `Time's up! The correct answer is: ${currentQuestion.answer}`;
+    feedbackElement.className = "wrong";
 
     submitButton.disabled = true;
     answerInput.disabled = true;
 
-    playAgainButton.hidden = false;
-    nextQuestionButton.hidden = false;
+    if(currentQuestionNumber === totalQuestions) {
+        playAgainButton.hidden = false;
+        nextQuestionButton.hidden = true;
+        
+        resultContainer.hidden = false;
+        finalScoreElement.textContent = score;
+    } else {
+        playAgainButton.hidden = false;
+        nextQuestionButton.hidden = false;
+    }
 }
 
 operatorButton.forEach((button) => {
 
     button.addEventListener("click", () => {
         selectedOperator = button.dataset.operator;
+        operatorButton.forEach((b) => b.classList.remove("selected"));
+        button.classList.add("selected");
     });
 });
 
@@ -47,24 +64,29 @@ difficulty.addEventListener("change", () => {
     selectedDifficulty = difficulty.value;
 });
 
-/////////////////////////////////////////////
 startButton.addEventListener("click", () => {
 
     if(selectedOperator === null) {
         alert("Please select an operator.");
         return;
     }
-
+    
+    feedbackElement.className = "";
     score = 0;
+    finalScoreElement.textContent = score;
     scoreElement.textContent = score;
+    resultContainer.hidden = true;
     playAgainButton.hidden = true;
     nextQuestionButton.hidden = true;
+
+    currentQuestionNumber = 1;
+    numberOfQuestions.textContent = currentQuestionNumber;
 
     currentQuestion = generateQuestion(selectedOperator, selectedDifficulty);
 
     startTimer(10, updateTimerDisplay, handleTimeUp);
 
-    questionElement.textContent = `${currentQuestion.number1} ${selectedOperator} ${currentQuestion.number2} = ?`
+    questionElement.textContent = `${currentQuestion.number1} ${symbols[selectedOperator]} ${currentQuestion.number2} = ?`
     
     answerInput.value = "";
     feedbackElement.textContent = "";
@@ -72,8 +94,9 @@ startButton.addEventListener("click", () => {
     settings.hidden = true;
     gameContainer.hidden = false;
 
-submitButton.disabled = false;
-answerInput.disabled = false;
+    submitButton.disabled = false;
+    answerInput.disabled = false;
+    answerInput.focus();
 });
 
 submitButton.addEventListener("click", () => {
@@ -90,19 +113,31 @@ submitButton.addEventListener("click", () => {
 
      const playerAnswer = Number(answerInput.value);
      
-     if(playerAnswer === currentQuestion.answer) {
-            feedbackElement.textContent = "Correct answer.";
-            score++;
-            scoreElement.textContent = score;
-     } else {
-            feedbackElement.textContent = `Wrong answer. Correct answer is: ${currentQuestion.answer}`;
-    }
+    if (playerAnswer === currentQuestion.answer) {
+        feedbackElement.textContent = "Correct answer.";
+        feedbackElement.className = "correct";
+        score++;
+        scoreElement.textContent = score;
+    } else {
+        feedbackElement.textContent = `Wrong answer. Correct answer is: ${currentQuestion.answer}`;
+        feedbackElement.className = "wrong";
+    }   
 
-    playAgainButton.hidden = false;
-    nextQuestionButton.hidden = false;
+    if(currentQuestionNumber === totalQuestions) {
+        resultContainer.hidden = false;
+        finalScoreElement.textContent = score;
+
+        playAgainButton.hidden = false;
+        nextQuestionButton.hidden = true;
+
+    } else {
+        playAgainButton.hidden = false;
+        nextQuestionButton.hidden = false;
+    }
 });
 
 playAgainButton.addEventListener("click", () => {
+    stopTimer();
     currentQuestionNumber = 1;
     numberOfQuestions.textContent = currentQuestionNumber;
     settings.hidden = false;
@@ -110,8 +145,9 @@ playAgainButton.addEventListener("click", () => {
 });
 
 nextQuestionButton.addEventListener("click", () => {
+    feedbackElement.className = "";
     currentQuestion = generateQuestion(selectedOperator, selectedDifficulty);
-    questionElement.textContent = `${currentQuestion.number1} ${selectedOperator} ${currentQuestion.number2} = ?`;
+    questionElement.textContent = `${currentQuestion.number1} ${symbols[selectedOperator]} ${currentQuestion.number2} = ?`;
 
     currentQuestionNumber++;
     numberOfQuestions.textContent = currentQuestionNumber;
@@ -120,9 +156,16 @@ nextQuestionButton.addEventListener("click", () => {
 
     submitButton.disabled = false;
     answerInput.disabled = false;
+    answerInput.focus();
     playAgainButton.hidden = true;
 
     startTimer(10, updateTimerDisplay, handleTimeUp);
 
     nextQuestionButton.hidden = true;
+});
+
+answerInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !submitButton.disabled) {
+        submitButton.click();
+    }
 });

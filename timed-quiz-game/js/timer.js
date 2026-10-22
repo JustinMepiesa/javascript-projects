@@ -1,7 +1,3 @@
-setInterval(() => {
-    console.log("One second passed!");
-}, 1000);
-
 let timerId = null;
 
 function startTimer(duration, onTick, onTimeUp) {
